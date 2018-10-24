@@ -1,0 +1,4 @@
+;;; Package --- Python language layer
+
+;;; Commentary:
+;; - Enable elpy

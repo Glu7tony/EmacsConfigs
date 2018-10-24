@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+import re
+import requests
+from bs4 import BeautifulSoup
+
+def get_mainpage ( uri ):
+    main_resp = requests.get( uri )
+    body = main_resp.text
+    return body
+
+
+def collect_pages ( uri, n_pages ):
+    page_step = 15
+    all_content = []
+    change_pages_regex = re.compile(r"frompage=\d+", re.IGNORECASE)
+    for i in range( n_pages ):
+        page_resp = requests.get( uri )
+        all_content.append( page_resp.text )
+        page_step = page_step + 15;
+        uri = change_pages_regex.sub("frompage=" + str(page_step), uri)
+    return all_content
+
+
+
+domain    = 'https://www.jobs.bg/'
+main_url  = 'https://www.jobs.bg/front_job_search.php?distance=0&location_sid=1&categories%5B%5D=15&all_type=0&all_position_level=1&all_company_type=1&keyword='
+next_page = 'https://www.jobs.bg/front_job_search.php?frompage=15&distance=0&location_sid=1&categories%5B0%5D=15&all_type=0&all_position_level=1&all_company_type=1&keyword=#paging'
+
+all_pages_content = []
+all_pages_content.append( get_mainpage( main_url ) )
+all_pages_content.extend( collect_pages( next_page, 20 ) )
+
+with open ( 'jobResults.xml', 'w' ) as res:
+    res.write('<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n')
+    res.write('<List_of_jobs>\n')
+    for page_body in all_pages_content:
+        res.write( '<NewPage>\n')
+        soup  = BeautifulSoup( page_body, 'html.parser' )
+        a_tags = soup.find_all(attrs={"class": ["joblink", "href"]})
+        for tag in a_tags:
+            match_job_url = re.search(r'href=[\'\"]([^\'\"]+)[\'\"]', tag.prettify(), re.I)
+            job_url = domain + match_job_url.group(1)
+            res.write('\t<Position>')
+            res.write( '' . join(map(str, tag.contents)))
+            res.write('</Position>\n')
+            res.write( '\t<JobLink>' + str(job_url) + '</JobLink>\n')
+            res.write('</NewPage>\n')
+
+    res.write('</List_of_jobs>\n')
+res.close

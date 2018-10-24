@@ -1,0 +1,5 @@
+#!/usr/bin/shell
+
+sudo apt-get install python-pip
+sudo pip install requests
+sudo pip install bs4

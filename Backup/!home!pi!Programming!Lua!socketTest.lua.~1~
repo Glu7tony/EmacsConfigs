@@ -1,0 +1,5 @@
+local http = require("socket.http")
+
+r, c, b = http.request {
+   url = "https://www.dnes.bg/"
+}

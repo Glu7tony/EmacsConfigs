@@ -1,0 +1,16 @@
+import requests
+from bs4 import BeautifulSoup
+
+url = 'https://www.jobs.bg/front_job_search.php?distance=0&location_sid=1&categories%5B%5D=15&all_type=0&all_position_level=1&all_company_type=1&keyword='
+resp = requests.get( url )
+content = resp.text
+soup = BeautifulSoup( content, 'html.parser' )
+
+a_tags = soup.find_all( 'a', 'joblink')
+
+with open ( 'jobResults.txt', 'w' ) as res:
+    # res.write( soup.prettify().encode( 'utf-8' ) )
+    for tag in a_tags:
+        res.write( ''. join( map( str, tag.contents ) ) )
+        res.write( '\n' )
+res.close
